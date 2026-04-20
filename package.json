@@ -1,0 +1,38 @@
+{
+  "name": "linkedin-pain-points",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc --noEmit",
+    "migrate": "tsx src/db/migrate.ts",
+    "seed": "tsx scripts/seed-from-compass.ts",
+    "scrape": "tsx scripts/run-scraping.ts",
+    "scrape:companies": "tsx scripts/run-company-scraping.ts",
+    "analyze": "tsx scripts/run-analysis.ts",
+    "analyze:companies": "tsx scripts/run-company-analysis.ts",
+    "guide": "tsx scripts/generate-guide.ts",
+    "api": "tsx src/api/server.ts",
+    "dashboard:dev": "cd dashboard && npm run dev",
+    "dashboard:build": "cd dashboard && npm run build",
+    "dev": "concurrently \"npm run api\" \"npm run dashboard:dev\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "better-sqlite3": "^12.6.2",
+    "commander": "^14.0.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.12.0",
+    "@types/pg": "^8.11.11",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

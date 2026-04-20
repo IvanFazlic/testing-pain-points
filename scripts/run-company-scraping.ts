@@ -31,6 +31,7 @@ interface CompanyRow {
   id: number;
   display_name: string;
   linkedin_company_id: string;
+  company_linkedin_url: string | null;
 }
 
 interface CompanyPostResponse {
@@ -49,7 +50,12 @@ async function scrapeCompany(
   batchId: string,
   stats: { posts: number; errors: number; companiesWithPosts: number },
 ): Promise<void> {
-  const companyUrl = `https://www.linkedin.com/company/${company.linkedin_company_id}`;
+  // ScrapeCreators rejects numeric-id URLs (returns 500). Use the slug-based URL when we have one.
+  if (!company.company_linkedin_url) {
+    console.log(`  [SKIP] ${company.display_name} — no slug-based linkedin URL (only numeric id)`);
+    return;
+  }
+  const companyUrl = company.company_linkedin_url;
   let resp: CompanyPostResponse;
   try {
     resp = (await getCompanyPosts(companyUrl)) as CompanyPostResponse;
@@ -102,7 +108,7 @@ async function run(opts: { microsegment?: string; limit?: string; dryRun: boolea
   console.log(`Window: ${WINDOW_MONTHS} months (from ${WINDOW_START.toISOString()})`);
 
   let sql = `
-    SELECT DISTINCT co.id, co.display_name, co.linkedin_company_id
+    SELECT DISTINCT co.id, co.display_name, co.linkedin_company_id, co.company_linkedin_url
     FROM companies co
     ${opts.microsegment ? `JOIN contacts c ON c.company_id = co.id AND c.microsegment_id = $1` : ``}
     WHERE co.linkedin_company_id IS NOT NULL AND co.linkedin_company_id != ''

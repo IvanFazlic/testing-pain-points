@@ -42,6 +42,15 @@ if (existsSync(dashboardDist)) {
   console.log("No dashboard build found — running as API-only service");
 }
 
-app.listen(PORT, () => {
-  console.log(`API server listening on :${PORT}`);
+// Bind to 0.0.0.0 explicitly so Railway's edge proxy can reach the container.
+// On some Node/Linux setups the default bind resolves to ::1 (localhost-only),
+// which causes Railway to return "Application failed to respond" even though
+// the process is listening.
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`API server listening on 0.0.0.0:${PORT}`);
+});
+
+// Add a tiny root handler so Railway healthchecks (or curl /) get 200, not 404.
+app.get("/", (_req, res) => {
+  res.json({ service: "linkedin-pain-points-api", ok: true });
 });

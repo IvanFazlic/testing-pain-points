@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pain Points DB — Data Model Snapshot</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background:#030712; color:#e5e7eb; font-family: ui-sans-serif, system-ui, -apple-system; }
+  .card { background:#0b1220; border:1px solid #1f2937; border-radius:0.5rem; padding:1rem; }
+  .pill { display:inline-block; padding:.125rem .5rem; border-radius:9999px; font-size:.7rem; }
+  .arrow { color:#4b5563; font-family: ui-monospace, monospace; }
+  .table-cell { padding:.5rem .75rem; vertical-align:top; font-size:.85rem; }
+  .col { border:1px solid #1f2937; border-radius:.375rem; padding:.5rem .75rem; background:#111827; }
+  .col-head { font-size:.7rem; color:#60a5fa; font-family: ui-monospace, monospace; text-transform:uppercase; letter-spacing:.04em; }
+  .col-body { font-size:.8rem; color:#9ca3af; font-family: ui-monospace, monospace; line-height:1.5; }
+  .badge-high   { background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.3);}
+  .badge-medium { background:rgba(234,179,8,.15);  color:#fde047; border:1px solid rgba(234,179,8,.3);}
+  .badge-low    { background:rgba(34,197,94,.15);  color:#86efac; border:1px solid rgba(34,197,94,.3);}
+  .pipeline-step { background:#0b1220; border:1px solid #1f2937; border-radius:.5rem; padding:.75rem; }
+  .pipeline-arrow { color:#4b5563; font-size:1.5rem; text-align:center; line-height:1; }
+  details > summary { cursor:pointer; }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="max-w-6xl mx-auto px-6 py-8 space-y-8">
+
+  <header>
+    <div class="text-xs text-gray-500 font-mono">SNAPSHOT · 2026-04-20T10:50:30.085Z</div>
+    <h1 class="text-2xl font-semibold text-white mt-1">Pain Points DB — Data Model</h1>
+    <p class="text-sm text-gray-400 mt-1">Live snapshot of what's in the database, how it got there, and how the LinkedIn-Ads dashboard slices it. Cohort: <code class="text-blue-300">uk-industrial-iot::ex-london</code>.</p>
+  </header>
+
+  <!-- ===== 1. LIVE COUNTS ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">1. Live row counts</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="card">
+        <div class="text-xs text-gray-500 mb-2">Global (all microsegments)</div>
+        <table class="w-full text-sm">
+          
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">companies</code><div class="text-xs text-gray-500">Companies (across all microsegments)</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">4,953</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">contacts</code><div class="text-xs text-gray-500">Contacts</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">18,365</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">scraped_company_posts</code><div class="text-xs text-gray-500">Company-page posts (Sales Nav HTML + ScrapeCreators)</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">6,170</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">company_post_analysis</code><div class="text-xs text-gray-500">Per-post Haiku analysis</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">5,757</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">scraped_posts</code><div class="text-xs text-gray-500">Person-authored posts</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">5</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">post_analysis</code><div class="text-xs text-gray-500">Per-person-post Haiku analysis</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">5</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">pain_point_insights</code><div class="text-xs text-gray-500">Synthesized pain-point insights</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">30</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">post_insight_tags</code><div class="text-xs text-gray-500">Post → insight tag edges</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">4,536</td>
+          </tr>
+          <tr class="border-b border-gray-800/60 last:border-0">
+            <td class="py-1.5 pr-3"><code class="text-gray-300">scrape_runs</code><div class="text-xs text-gray-500">Pipeline execution log</div></td>
+            <td class="py-1.5 text-right tabular-nums text-gray-100">21</td>
+          </tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="text-xs text-gray-500 mb-2">IoT cohort: <code class="text-blue-300">uk-industrial-iot::ex-london</code></div>
+        <table class="w-full text-sm">
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">Companies</td><td class="text-right tabular-nums">450</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">Contacts</td><td class="text-right tabular-nums">1,151</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">→ with Sales Nav URL</td><td class="text-right tabular-nums text-gray-400">1,151</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">→ with public LinkedIn URL</td><td class="text-right tabular-nums text-green-400">1,151</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">→ with bio</td><td class="text-right tabular-nums text-gray-400">666</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">→ with location</td><td class="text-right tabular-nums text-gray-400">1,150</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">→ with connection degree</td><td class="text-right tabular-nums text-gray-400">1,077</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">Company posts</td><td class="text-right tabular-nums">5,725</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">→ analyzed (Haiku)</td><td class="text-right tabular-nums text-gray-400">5,724</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">Synthesized insights</td><td class="text-right tabular-nums">15</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="py-1.5">Post→insight tag edges</td><td class="text-right tabular-nums">4,536</td></tr>
+          <tr><td class="py-1.5 text-blue-300">Posts with ≥1 tag</td><td class="text-right tabular-nums text-blue-300">3,162 <span class="text-gray-500 text-xs">(55.2%)</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2. ER DIAGRAM ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">2. Entity diagram</h2>
+    <div class="card overflow-x-auto">
+      <div class="grid grid-cols-3 gap-x-3 gap-y-6 min-w-[900px]" style="grid-template-columns: 1fr auto 1fr;">
+
+        <div class="col">
+          <div class="col-head">companies</div>
+          <div class="col-body">
+            id (PK)<br>
+            display_name<br>
+            primary_domain ◆<br>
+            linkedin_company_id ◆<br>
+            company_linkedin_url<br>
+            normalized_industry<br>
+            employee_count_band<br>
+            raw_employee_count<br>
+            revenue_band<br>
+            headquarters<br>
+            about_text
+          </div>
+        </div>
+        <div class="pipeline-arrow self-center">→</div>
+        <div class="col">
+          <div class="col-head">contacts</div>
+          <div class="col-body">
+            id (PK)<br>
+            person_linkedin_url ◆<br>
+            full_name / first_name / last_name<br>
+            title<br>
+            <span class="text-blue-300">role_seniority ✚</span><br>
+            connection_degree<br>
+            location<br>
+            bio<br>
+            salesnav_lead_url<br>
+            <span class="text-yellow-400">public_linkedin_url (pending)</span><br>
+            tenure_in_role<br>
+            company_id (FK)<br>
+            microsegment_id ★
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="col-head">scraped_company_posts</div>
+          <div class="col-body">
+            id (PK)<br>
+            post_url ◆<br>
+            company_id (FK)<br>
+            post_text<br>
+            post_date<br>
+            raw_json
+          </div>
+        </div>
+        <div class="pipeline-arrow self-center">↓</div>
+        <div class="col">
+          <div class="col-head">scraped_posts</div>
+          <div class="col-body text-gray-500">
+            id (PK)<br>
+            post_url ◆<br>
+            contact_id (FK)<br>
+            post_text<br>
+            post_date / likes / comments<br>
+            <span class="text-yellow-400">(near-empty: ScrapeCreators not run)</span>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="col-head">company_post_analysis</div>
+          <div class="col-body">
+            company_scraped_post_id (FK, UNIQUE)<br>
+            topics[] (JSONB)<br>
+            pain_points[] (JSONB)<br>
+            sentiment / sentiment_score<br>
+            intent_signals[]<br>
+            key_quotes[]<br>
+            analysis_model<br>
+            token_usage
+          </div>
+        </div>
+        <div class="pipeline-arrow self-center">↔</div>
+        <div class="col">
+          <div class="col-head">post_analysis</div>
+          <div class="col-body text-gray-500">
+            scraped_post_id (FK, UNIQUE)<br>
+            same shape as ←<br>
+            <span class="text-yellow-400">(parallel; near-empty)</span>
+          </div>
+        </div>
+
+        <div class="col col-span-3" style="grid-column: span 3;">
+          <div class="col-head" style="color:#a855f7">post_insight_tags  (NEW — drives Audience Builder)</div>
+          <div class="col-body">
+            id (PK) · company_scraped_post_id <span class="arrow">XOR</span> scraped_post_id · insight_id (FK) · microsegment_id · score (0..1) · source ∈ <span class="text-green-300">evidence</span> | <span class="text-blue-300">fuzzy</span> | <span class="text-purple-300">llm</span> | <span class="text-yellow-300">manual</span><br>
+            UNIQUE(post, insight) — idempotent · indexed on insight_id + microsegment_id
+          </div>
+        </div>
+
+        <div class="col col-span-3" style="grid-column: span 3;">
+          <div class="col-head">pain_point_insights</div>
+          <div class="col-body">
+            id (PK) · microsegment_id ★ · UNIQUE(ms, insight_name)<br>
+            insight_name · pain_point_summary · who_feels_pain · what_triggers_it · urgency_level · topics[]<br>
+            frequency_count · company_count · contact_count · avg_sentiment_score · sentiment_distribution<br>
+            evidence[] (JSONB) — back-references to {post_url, quote, company, person, date}
+          </div>
+        </div>
+
+      </div>
+      <div class="text-xs text-gray-500 mt-4 font-mono">
+        ◆ = unique-indexed for dedupe / lookup &nbsp; ★ = soft FK on microsegment_id (TEXT, not normalised) &nbsp; ✚ = backfilled by scripts/backfill-role-seniority.ts
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3. DATA FLOW ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">3. Data flow</h2>
+    <div class="card">
+      <div class="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Source</div>
+          <div class="text-sm font-medium text-gray-100 mt-1">Sales Nav HTML bundle</div>
+          <div class="text-xs text-gray-500 mt-1">+ upload CSV</div>
+        </div>
+        <div class="pipeline-arrow md:col-span-1">→</div>
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Seeder</div>
+          <div class="text-sm font-medium text-gray-100 mt-1">seed-from-linkedin-salesnav.ts</div>
+          <div class="text-xs text-gray-500 mt-1">parseCompanyPage<br>parseDecisionMakers<br>parseCompanyPagePosts</div>
+        </div>
+        <div class="pipeline-arrow md:col-span-1">→</div>
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Per-post analysis</div>
+          <div class="text-sm font-medium text-gray-100 mt-1">analyze:companies</div>
+          <div class="text-xs text-gray-500 mt-1">Haiku 4.5<br>5,724 posts</div>
+        </div>
+        <div class="pipeline-arrow md:col-span-1">→</div>
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Synthesis</div>
+          <div class="text-sm font-medium text-gray-100 mt-1">analyze --stage 2</div>
+          <div class="text-xs text-gray-500 mt-1">Haiku 4.5<br>15 insights</div>
+        </div>
+      </div>
+      <div class="text-center pipeline-arrow my-3">↓</div>
+      <div class="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Tag pass 1</div>
+          <div class="text-sm font-medium" style="color:#22c55e">evidence</div>
+          <div class="text-xs text-gray-500 mt-1">bootstrap-tags-from-evidence.ts<br>score=1.0</div>
+        </div>
+        <div class="pipeline-arrow md:col-span-1">→</div>
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Tag pass 2</div>
+          <div class="text-sm font-medium" style="color:#3b82f6">fuzzy (pg_trgm)</div>
+          <div class="text-xs text-gray-500 mt-1">run-fuzzy-tagging.ts<br>threshold ≥ 0.55</div>
+        </div>
+        <div class="pipeline-arrow md:col-span-1">→</div>
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Tag pass 3</div>
+          <div class="text-sm font-medium" style="color:#a855f7">llm</div>
+          <div class="text-xs text-gray-500 mt-1">run-llm-tagging.ts<br>residual only</div>
+        </div>
+        <div class="pipeline-arrow md:col-span-1">→</div>
+        <div class="pipeline-step md:col-span-1 text-center">
+          <div class="text-xs text-gray-400">Output</div>
+          <div class="text-sm font-medium text-gray-100">post_insight_tags</div>
+          <div class="text-xs text-gray-500 mt-1">4,536 edges</div>
+        </div>
+      </div>
+      <div class="text-center pipeline-arrow my-3">↓</div>
+      <div class="pipeline-step text-center">
+        <div class="text-xs text-gray-400">Consumer</div>
+        <div class="text-sm font-medium text-blue-300 mt-1">/api/audiences/preview · /api/audiences/export → LinkedIn Matched-Audiences CSV</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 4. TAGS BY SOURCE ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">4. Tags by source</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="card">
+        <div class="text-xs text-gray-500 mb-3">4,536 total tag edges</div>
+        
+          <div class="mb-3">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span style="color:#a855f7" class="font-medium">llm</span>
+              <span class="text-gray-500 tabular-nums">3,064 <span class="text-xs">(67.5%)</span></span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:67.5%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-3">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span style="color:#3b82f6" class="font-medium">fuzzy</span>
+              <span class="text-gray-500 tabular-nums">1,392 <span class="text-xs">(30.7%)</span></span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:30.7%;background:#3b82f6"></div></div>
+          </div>
+          <div class="mb-3">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span style="color:#22c55e" class="font-medium">evidence</span>
+              <span class="text-gray-500 tabular-nums">80 <span class="text-xs">(1.8%)</span></span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:1.8%;background:#22c55e"></div></div>
+          </div>
+      </div>
+      <div class="card">
+        <div class="text-xs text-gray-500 mb-3">post_url shape (across all microsegments)</div>
+        <div class="text-sm space-y-3">
+          <div>
+            <div class="flex justify-between mb-0.5"><span><code class="text-gray-300">salesnav://&lt;co&gt;/alert/&lt;id&gt;</code></span><span class="text-gray-500 tabular-nums">6,121</span></div>
+            <div class="text-xs text-gray-500">Synthetic; harvested from Sales Nav HTML <code>data-anonymize="general-blurb"</code> blocks</div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-0.5"><span><code class="text-gray-300">https://www.linkedin.com/...</code></span><span class="text-gray-500 tabular-nums">49</span></div>
+            <div class="text-xs text-gray-500">From ScrapeCreators company-posts smoke (Elite Sensors + Cyclops Marine)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5. PER-INSIGHT COVERAGE ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">5. Per-insight tag coverage (uk-industrial-iot::ex-london)</h2>
+    <div class="card overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="text-xs text-gray-500 border-b border-gray-800">
+            <th class="text-left table-cell">Insight</th>
+            <th class="text-left table-cell">Urgency</th>
+            <th class="text-right table-cell">Posts tagged</th>
+            <th class="text-left table-cell" style="width:40%">Bar</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Reactive maintenance blind spots drive costly unplanned downtime</td>
+            <td class="table-cell"><span class="pill badge-high">high</span></td>
+            <td class="table-cell text-right tabular-nums">681</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:100.0%;background:#ef4444"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Engineering talent gap limits plant reliability and growth</td>
+            <td class="table-cell"><span class="pill badge-high">high</span></td>
+            <td class="table-cell text-right tabular-nums">569</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:83.6%;background:#ef4444"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Data collected but not converted into decisions</td>
+            <td class="table-cell"><span class="pill badge-high">high</span></td>
+            <td class="table-cell text-right tabular-nums">423</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:62.1%;background:#ef4444"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Manual processes and operator variance cap scale-up</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">392</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:57.6%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Manual and fragmented inspection is too slow and risky</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">383</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:56.2%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Harsh and extreme environments break conventional sensors</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">375</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:55.1%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Legacy assets need retrofit rather than replacement</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">372</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:54.6%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Regulatory compliance burden is overwhelming UK operators</td>
+            <td class="table-cell"><span class="pill badge-high">high</span></td>
+            <td class="table-cell text-right tabular-nums">309</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:45.4%;background:#ef4444"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Custom vs off-the-shelf automation and connectivity mismatch</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">255</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:37.4%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">AI deployment struggles to cross the hype-to-impact gap</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">197</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:28.9%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Energy pricing and grid flexibility strand legacy contracts and assets</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">157</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:23.1%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Thin margins and policy volatility squeeze manufacturers</td>
+            <td class="table-cell"><span class="pill badge-high">high</span></td>
+            <td class="table-cell text-right tabular-nums">143</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:21.0%;background:#ef4444"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Hidden hazards: gas, dust and ventilation failing silently</td>
+            <td class="table-cell"><span class="pill badge-high">high</span></td>
+            <td class="table-cell text-right tabular-nums">133</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:19.5%;background:#ef4444"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">OT visibility and unmanaged change are the real security gap</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">110</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:16.2%;background:#eab308"></div></div></td>
+          </tr>
+          <tr class="border-b border-gray-800/60">
+            <td class="table-cell text-gray-100">Classifying good vs bad traffic is security's hardest problem</td>
+            <td class="table-cell"><span class="pill badge-medium">medium</span></td>
+            <td class="table-cell text-right tabular-nums">37</td>
+            <td class="table-cell"><div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:5.4%;background:#eab308"></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== 6. ROLES + INDUSTRIES ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">6. Cohort breakdown</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="card">
+        <div class="text-xs text-gray-500 mb-3">Role seniority (1,151 contacts)</div>
+        
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300">Director/Head</span>
+              <span class="text-gray-500 tabular-nums">605</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:100.0%;background:#3b82f6"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300">CEO/Founder/MD</span>
+              <span class="text-gray-500 tabular-nums">411</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:67.9%;background:#3b82f6"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300">C-Suite</span>
+              <span class="text-gray-500 tabular-nums">71</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:11.7%;background:#3b82f6"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300">Other</span>
+              <span class="text-gray-500 tabular-nums">39</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:6.4%;background:#3b82f6"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300">VP</span>
+              <span class="text-gray-500 tabular-nums">12</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:2.0%;background:#3b82f6"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300">Manager</span>
+              <span class="text-gray-500 tabular-nums">12</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:2.0%;background:#3b82f6"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300">Senior IC</span>
+              <span class="text-gray-500 tabular-nums">1</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:0.2%;background:#3b82f6"></div></div>
+          </div>
+      </div>
+      <div class="card">
+        <div class="text-xs text-gray-500 mb-3">Top 10 industries (companies in cohort)</div>
+        
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Appliances, Electrical, and Electronics Manufacturing">Appliances, Electrical, and Electronics Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">321</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:100.0%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Industrial Machinery Manufacturing">Industrial Machinery Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">104</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:32.4%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Medical Equipment Manufacturing">Medical Equipment Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">83</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:25.9%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Technology, Information and Internet">Technology, Information and Internet</span>
+              <span class="text-gray-500 tabular-nums">80</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:24.9%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Automation Machinery Manufacturing">Automation Machinery Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">76</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:23.7%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Computer Hardware Manufacturing">Computer Hardware Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">60</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:18.7%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Renewable Energy Semiconductor Manufacturing">Renewable Energy Semiconductor Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">35</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:10.9%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Industrial Automation">Industrial Automation</span>
+              <span class="text-gray-500 tabular-nums">28</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:8.7%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Measuring and Control Instrument Manufacturing">Measuring and Control Instrument Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">26</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:8.1%;background:#a855f7"></div></div>
+          </div>
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-0.5">
+              <span class="text-gray-300 truncate" title="Manufacturing">Manufacturing</span>
+              <span class="text-gray-500 tabular-nums">22</span>
+            </div>
+            <div class="h-1.5 bg-gray-800 rounded mt-1 overflow-hidden"><div class="h-full" style="width:6.9%;background:#a855f7"></div></div>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 7. FILTERS ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">7. Filter map (Audience Builder)</h2>
+    <div class="card overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs text-gray-500 border-b border-gray-800">
+            <th class="table-cell text-left">Filter (URL param)</th>
+            <th class="table-cell text-left">SQL column / join</th>
+            <th class="table-cell text-left">Populated by</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-800/60"><td class="table-cell"><code>microsegment</code></td><td class="table-cell"><code class="text-gray-400">contacts.microsegment_id</code></td><td class="table-cell text-gray-400">seeder, hard-coded per cohort</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="table-cell"><code>insight_id</code> (CSV)</td><td class="table-cell"><code class="text-gray-400">EXISTS … post_insight_tags pit WHERE pit.insight_id = ANY($x)</code></td><td class="table-cell text-gray-400">tagging passes (evidence + fuzzy + llm)</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="table-cell"><code>industry</code> (CSV)</td><td class="table-cell"><code class="text-gray-400">companies.normalized_industry = ANY($x)</code></td><td class="table-cell text-gray-400">parsed from Sales Nav <code>data-anonymize="industry"</code></td></tr>
+          <tr class="border-b border-gray-800/60"><td class="table-cell"><code>seniority</code> (CSV)</td><td class="table-cell"><code class="text-gray-400">contacts.role_seniority = ANY($x)</code></td><td class="table-cell text-gray-400">backfill-role-seniority.ts + roleBucket()</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="table-cell"><code>degree</code> (CSV)</td><td class="table-cell"><code class="text-gray-400">contacts.connection_degree = ANY($x)</code></td><td class="table-cell text-gray-400">parsed from Sales Nav DOM</td></tr>
+          <tr class="border-b border-gray-800/60"><td class="table-cell"><code>has_bio</code></td><td class="table-cell"><code class="text-gray-400">contacts.bio IS NOT NULL AND bio &lt;&gt; ''</code></td><td class="table-cell text-gray-400">parsed from <code>person-blurb</code> title attr</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== 8. LINKEDIN READINESS ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">8. LinkedIn Matched Audiences readiness</h2>
+    <div class="card">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="col">
+          <div class="col-head" style="color:#fbbf24">Email</div>
+          <div class="col-body">0 / 1,151<br><span class="text-yellow-400">not enriched</span><br><span class="text-gray-500">— best match rate but absent</span></div>
+        </div>
+        <div class="col">
+          <div class="col-head" style="color:#86efac">Name + Company + Title</div>
+          <div class="col-body">1,151 / 1,151<br><span class="text-green-400">100%</span><br><span class="text-gray-500">— LinkedIn fallback path; ~30–50% match</span></div>
+        </div>
+        <div class="col">
+          <div class="col-head" style="color:#86efac">LinkedIn Profile URL</div>
+          <div class="col-body">1,151 / 1,151<br><span class="text-green-400">100% <code class="text-xs">/in/&lt;URN&gt;</code> form</span><br><span class="text-gray-500">— LinkedIn canonicalizes URN → vanity</span></div>
+        </div>
+      </div>
+      <div class="text-xs text-gray-400 mt-4 leading-relaxed">
+        <strong class="text-gray-300">Public URL resolution — done.</strong> The URN embedded in the Sales Nav URL (segment between <code>/lead/</code> and the first comma) is a valid LinkedIn member URN. Pasting it under <code>/in/</code> yields a URL LinkedIn 301-redirects to the member's vanity profile. LinkedIn Matched Audiences canonicalizes to the member URN server-side, so URN-form URLs match against the same record. Backfilled via <code>scripts/rebuild-public-urls.ts</code> — zero API cost.
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 9. OTHER COHORTS ===== -->
+  <section>
+    <h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">9. Other microsegments (top 12 by contact count)</h2>
+    <div class="card">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::tech-software-saas-software-products">uk-ceo-ex-london::tech-software-saas-software-products</span>
+            <span class="tabular-nums text-gray-400">2,463</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::manufacturing-engineering-industrial-heavy-engineering">uk-ceo-ex-london::manufacturing-engineering-industrial-heavy-engineering</span>
+            <span class="tabular-nums text-gray-400">1,518</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::healthcare-life-sciences-biotech-pharma">uk-ceo-ex-london::healthcare-life-sciences-biotech-pharma</span>
+            <span class="tabular-nums text-gray-400">1,321</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::non-profit-education-schools-education-bodies">uk-ceo-ex-london::non-profit-education-schools-education-bodies</span>
+            <span class="tabular-nums text-gray-400">1,174</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-industrial-iot::ex-london">uk-industrial-iot::ex-london</span>
+            <span class="tabular-nums text-gray-400">1,151</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::non-profit-education-charities-social-organisations">uk-ceo-ex-london::non-profit-education-charities-social-organisations</span>
+            <span class="tabular-nums text-gray-400">916</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::healthcare-life-sciences-medical-devices-diagnostics">uk-ceo-ex-london::healthcare-life-sciences-medical-devices-diagnostics</span>
+            <span class="tabular-nums text-gray-400">868</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::manufacturing-engineering-chemicals-materials-packaging">uk-ceo-ex-london::manufacturing-engineering-chemicals-materials-packaging</span>
+            <span class="tabular-nums text-gray-400">775</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::unclassified-general">uk-ceo-ex-london::unclassified-general</span>
+            <span class="tabular-nums text-gray-400">738</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::professional-services-business-management-services">uk-ceo-ex-london::professional-services-business-management-services</span>
+            <span class="tabular-nums text-gray-400">715</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::manufacturing-engineering-electrical-electronics">uk-ceo-ex-london::manufacturing-engineering-electrical-electronics</span>
+            <span class="tabular-nums text-gray-400">603</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-800/60 py-1">
+            <span class="text-gray-300 font-mono text-xs truncate" title="uk-ceo-ex-london::construction-building-specialist-trades-materials">uk-ceo-ex-london::construction-building-specialist-trades-materials</span>
+            <span class="tabular-nums text-gray-400">500</span>
+          </div>
+      </div>
+      <div class="text-xs text-gray-500 mt-3">All cohorts other than <code>uk-industrial-iot::ex-london</code> have <strong class="text-yellow-400">no posts and no insights yet</strong> — they were seeded from the prior MXD Compass run but have not been through the Sales Nav HTML or ScrapeCreators pipeline.</div>
+    </div>
+  </section>
+
+  <footer class="text-xs text-gray-600 mt-8 border-t border-gray-800 pt-4">
+    Generated by <code>scripts/build-data-model-html.ts</code> · re-run any time to refresh.
+  </footer>
+</div>
+</body>
+</html>

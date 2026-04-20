@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>LinkedIn GTM Data — System Overview</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { color-scheme: dark; }
+  body { background:#030712; color:#e5e7eb; font-family: ui-sans-serif, system-ui, -apple-system; }
+  .card { background:#0b1220; border:1px solid #1f2937; border-radius:.5rem; padding:1rem; }
+  .mono, code { font-family: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace; }
+  code.inline { background:#111827; border:1px solid #1f2937; border-radius:.25rem; padding:0 .25rem; font-size:.85em; color:#93c5fd; }
+  pre { background:#030712; border:1px solid #1f2937; border-radius:.375rem; padding:.75rem 1rem; overflow-x:auto; font-size:.78rem; line-height:1.55; }
+  pre code { color:#d1d5db; }
+  h2 { color:#fff; font-size:1.5rem; font-weight:600; scroll-margin-top:1rem; }
+  h3 { color:#fff; font-size:1.15rem; font-weight:600; margin-top:1.5rem; }
+  h4 { color:#e5e7eb; font-size:.95rem; font-weight:600; margin-top:1rem; text-transform:uppercase; letter-spacing:.04em; color:#60a5fa; }
+  a.nav { color:#9ca3af; display:block; padding:.25rem 0; font-size:.85rem; border-left:2px solid transparent; padding-left:.5rem; }
+  a.nav:hover { color:#e5e7eb; }
+  a.nav.active { color:#60a5fa; border-left-color:#3b82f6; }
+  .pill { display:inline-block; padding:.1rem .5rem; border-radius:9999px; font-size:.7rem; font-weight:500; }
+  .pill-blue { background:rgba(59,130,246,.15); color:#93c5fd; border:1px solid rgba(59,130,246,.3); }
+  .pill-green { background:rgba(34,197,94,.15); color:#86efac; border:1px solid rgba(34,197,94,.3); }
+  .pill-purple { background:rgba(168,85,247,.15); color:#d8b4fe; border:1px solid rgba(168,85,247,.3); }
+  .pill-yellow { background:rgba(234,179,8,.15); color:#fde047; border:1px solid rgba(234,179,8,.3); }
+  .pill-red { background:rgba(239,68,68,.15); color:#fca5a5; border:1px solid rgba(239,68,68,.3); }
+  .pill-gray { background:rgba(156,163,175,.1); color:#9ca3af; border:1px solid rgba(156,163,175,.2); }
+  .flow-box { background:#0b1220; border:1px solid #1f2937; border-radius:.5rem; padding:.75rem; text-align:center; }
+  .flow-arrow { color:#4b5563; font-size:1.25rem; text-align:center; line-height:1; align-self:center; }
+  .col { border:1px solid #1f2937; border-radius:.375rem; padding:.5rem .75rem; background:#111827; font-size:.8rem; }
+  .col-head { font-size:.7rem; color:#60a5fa; font-family: ui-monospace, monospace; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem; }
+  .col-body { color:#9ca3af; font-family: ui-monospace, monospace; line-height:1.6; font-size:.75rem; }
+  table.tidy { font-size:.85rem; width:100%; border-collapse:collapse; }
+  table.tidy th { text-align:left; padding:.35rem .6rem; color:#9ca3af; font-weight:500; font-size:.75rem; border-bottom:1px solid #1f2937; text-transform:uppercase; letter-spacing:.04em; }
+  table.tidy td { padding:.4rem .6rem; border-bottom:1px solid #1f2937; vertical-align:top; }
+  table.tidy tr:last-child td { border-bottom:none; }
+  details > summary { cursor:pointer; color:#9ca3af; font-size:.85rem; }
+  details > summary:hover { color:#e5e7eb; }
+  .callout { background:#0b1220; border-left:3px solid #3b82f6; padding:.75rem 1rem; border-radius:.25rem; margin:.75rem 0; }
+  .callout.warn { border-left-color:#eab308; }
+  .callout.danger { border-left-color:#ef4444; }
+  .callout.success { border-left-color:#22c55e; }
+  .callout .label { font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; font-weight:600; margin-bottom:.25rem; }
+  .callout.warn .label { color:#fde047; }
+  .callout.danger .label { color:#fca5a5; }
+  .callout.success .label { color:#86efac; }
+  .callout .label:not(.warn):not(.danger):not(.success) { color:#93c5fd; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-8">
+
+  <!-- Sticky sidebar nav -->
+  <aside class="hidden lg:block">
+    <div class="sticky top-6">
+      <div class="text-xs text-gray-500 uppercase tracking-wide mb-3 font-semibold">Contents</div>
+      <nav>
+        <a class="nav" href="#what">1. What this is</a>
+        <a class="nav" href="#flow">2. End-to-end data flow</a>
+        <a class="nav" href="#schema">3. Database shape</a>
+        <a class="nav" href="#ingest">4. Ingest layer</a>
+        <a class="nav" href="#analyze">5. Analysis layer</a>
+        <a class="nav" href="#synth">6. Synthesis &amp; insights</a>
+        <a class="nav" href="#tagging">7. Tagging system</a>
+        <a class="nav" href="#urls">8. Public URL resolution</a>
+        <a class="nav" href="#api">9. API surface</a>
+        <a class="nav" href="#dashboard">10. Dashboard</a>
+        <a class="nav" href="#ads">11. LinkedIn Ads workflow</a>
+        <a class="nav" href="#deploy">12. Deployment</a>
+        <a class="nav" href="#ops">13. Running pipelines</a>
+        <a class="nav" href="#decisions">14. Key decisions</a>
+        <a class="nav" href="#limits">15. Limits &amp; roadmap</a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="space-y-10">
+
+    <!-- HEADER -->
+    <header>
+      <div class="text-xs text-gray-500 font-mono">LINKEDIN GTM DATA · SYSTEM OVERVIEW</div>
+      <h1 class="text-3xl font-semibold text-white mt-1">Corporate Pain-Point Dashboard → LinkedIn Ads Targeting</h1>
+      <p class="text-sm text-gray-400 mt-3 max-w-3xl leading-relaxed">
+        A full-stack tool that ingests LinkedIn Sales Navigator scrape bundles, extracts corporate
+        pain-points with Claude, clusters them into synthesized insights, and exports audience
+        CSVs ready for upload to LinkedIn Campaign Manager — turning unstructured social-media
+        chatter into precisely-targeted ad audiences.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <span class="pill pill-blue">Node 22</span>
+        <span class="pill pill-blue">TypeScript</span>
+        <span class="pill pill-blue">Express</span>
+        <span class="pill pill-blue">PostgreSQL</span>
+        <span class="pill pill-blue">React 19 + Vite</span>
+        <span class="pill pill-blue">Tailwind</span>
+        <span class="pill pill-green">Haiku 4.5</span>
+        <span class="pill pill-purple">Opus 4.7</span>
+        <span class="pill pill-yellow">Railway</span>
+        <span class="pill pill-yellow">Vercel</span>
+      </div>
+    </header>
+
+    <!-- 1. WHAT THIS IS -->
+    <section id="what">
+      <h2>1. What this is</h2>
+      <div class="card mt-3 space-y-3 text-sm leading-relaxed text-gray-300">
+        <p>
+          The standard LinkedIn Ads workflow is blind: pick a company size + seniority + industry
+          from Campaign Manager, write copy, pray the targeting lands. This tool replaces the
+          blind part — it reads what decision-makers are <em>actually</em> posting about in a
+          specific industry, extracts the pain-points they're expressing, and produces an
+          audience list of people whose companies are publicly talking about those pains.
+        </p>
+        <p>
+          Three artifacts come out of the pipeline, in order of business value:
+        </p>
+        <ul class="list-disc list-inside space-y-1 text-gray-300 ml-2">
+          <li><strong class="text-white">A pain-point catalog</strong> per micro-segment — 10–20 named themes, each backed by verbatim quotes.</li>
+          <li><strong class="text-white">A contact list</strong> of decision-makers at companies that posted about each theme, filterable by seniority / industry / recency / connection-degree.</li>
+          <li><strong class="text-white">A LinkedIn Matched Audiences CSV</strong> in the exact format Campaign Manager accepts — first/last/company/title + a URN-form profile URL that LinkedIn canonicalizes to the member.</li>
+        </ul>
+        <p class="text-gray-400 text-xs mt-3">
+          Current live cohort: <code class="inline">uk-industrial-iot::ex-london</code> —
+          491 companies, 1,151 contacts, 5,725 analyzed posts, 15 synthesized insights,
+          ~4,500 post→insight tag edges.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2. END-TO-END DATA FLOW -->
+    <section id="flow">
+      <h2>2. End-to-end data flow</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        From the raw HTML scrape all the way to a CSV ready for LinkedIn Campaign Manager.
+        Every arrow is a concrete script, prompt, or endpoint you can run individually.
+      </p>
+
+      <div class="card mt-4">
+        <!-- Row 1: Ingest -->
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Source</div>
+            <div class="text-sm font-medium mt-1">Sales Nav HTML bundle</div>
+            <div class="text-xs text-gray-500 mt-1 mono">linkedin_account/<br>scraped&nbsp;html/</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Parser</div>
+            <div class="text-sm font-medium mt-1">salesnav-html.ts</div>
+            <div class="text-xs text-gray-500 mt-1">cheerio selectors<br>on <code class="inline">[data-anonymize]</code></div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Seeder</div>
+            <div class="text-sm font-medium mt-1 text-blue-300">npm&nbsp;run&nbsp;seed:salesnav</div>
+            <div class="text-xs text-gray-500 mt-1">upsert companies,<br>contacts, posts</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Postgres</div>
+            <div class="text-sm font-medium mt-1">Railway DB</div>
+            <div class="text-xs text-gray-500 mt-1">companies · contacts<br>scraped_company_posts</div>
+          </div>
+        </div>
+
+        <div class="flow-arrow my-3">↓</div>
+
+        <!-- Row 2: Analyze -->
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Per-post extraction</div>
+            <div class="text-sm font-medium mt-1 text-blue-300">npm&nbsp;run&nbsp;analyze:companies</div>
+            <div class="text-xs text-gray-500 mt-1">Haiku 4.5<br>5,719 calls</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Per-post output</div>
+            <div class="text-sm font-medium mt-1">company_post_analysis</div>
+            <div class="text-xs text-gray-500 mt-1">topics[] · pain_points[]<br>sentiment · quotes[]</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Synthesis</div>
+            <div class="text-sm font-medium mt-1 text-purple-300">Opus 4.7 subagent</div>
+            <div class="text-xs text-gray-500 mt-1">export-synth-input →<br>Opus → import-synth-output</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Insight catalog</div>
+            <div class="text-sm font-medium mt-1">pain_point_insights</div>
+            <div class="text-xs text-gray-500 mt-1">15 named insights<br>+ evidence[]</div>
+          </div>
+        </div>
+
+        <div class="flow-arrow my-3">↓</div>
+
+        <!-- Row 3: Tag -->
+        <div class="grid grid-cols-1 md:grid-cols-9 gap-2 items-center">
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Pass 1</div>
+            <div class="text-sm font-medium mt-1" style="color:#86efac">evidence</div>
+            <div class="text-xs text-gray-500 mt-1">bootstrap<br>score=1.0</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Pass 2</div>
+            <div class="text-sm font-medium mt-1" style="color:#93c5fd">fuzzy (pg_trgm)</div>
+            <div class="text-xs text-gray-500 mt-1">sim ≥ 0.55<br>SQL-only</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Pass 3</div>
+            <div class="text-sm font-medium mt-1" style="color:#d8b4fe">llm residual</div>
+            <div class="text-xs text-gray-500 mt-1">Haiku menu<br>classifier</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Join table</div>
+            <div class="text-sm font-medium mt-1">post_insight_tags</div>
+            <div class="text-xs text-gray-500 mt-1">post × insight<br>edge rows</div>
+          </div>
+          <div class="flow-arrow md:col-span-1">→</div>
+          <div class="flow-box md:col-span-1">
+            <div class="text-xs text-gray-500">Audience API</div>
+            <div class="text-sm font-medium mt-1 text-blue-300">/api/audiences/*</div>
+            <div class="text-xs text-gray-500 mt-1">preview + CSV<br>export</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. DATABASE SHAPE -->
+    <section id="schema">
+      <h2>3. Database shape</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        Eight tables in one Railway Postgres instance. Soft foreign key on <code class="inline">microsegment_id</code>
+        (TEXT, not a real table). Everything else is properly linked.
+      </p>
+
+      <div class="card mt-4 overflow-x-auto">
+        <div class="grid gap-x-3 gap-y-5 min-w-[920px]" style="grid-template-columns: 1fr auto 1fr auto 1fr;">
+
+          <div class="col">
+            <div class="col-head">companies</div>
+            <div class="col-body">
+              id (PK)<br>
+              display_name<br>
+              primary_domain ◆<br>
+              linkedin_company_id ◆<br>
+              company_linkedin_url<br>
+              normalized_industry<br>
+              employee_count_band<br>
+              revenue_band · headquarters<br>
+              about_text · raw_employee_count
+            </div>
+          </div>
+          <div class="flow-arrow self-center">1..N</div>
+          <div class="col">
+            <div class="col-head">contacts</div>
+            <div class="col-body">
+              id (PK)<br>
+              person_linkedin_url ◆<br>
+              full_name / first / last<br>
+              title<br>
+              <span class="text-blue-300">role_seniority</span><br>
+              connection_degree<br>
+              location / bio<br>
+              salesnav_lead_url<br>
+              <span class="text-green-300">public_linkedin_url</span><br>
+              company_id (FK)<br>
+              microsegment_id ★
+            </div>
+          </div>
+          <div class="flow-arrow self-center"></div>
+          <div></div>
+
+          <div class="col">
+            <div class="col-head">scraped_company_posts</div>
+            <div class="col-body">
+              id (PK)<br>
+              post_url ◆<br>
+              <span class="text-gray-500">(salesnav://… or https://…)</span><br>
+              company_id (FK)<br>
+              post_text · post_date<br>
+              raw_json
+            </div>
+          </div>
+          <div class="flow-arrow self-center">1..1</div>
+          <div class="col">
+            <div class="col-head">company_post_analysis</div>
+            <div class="col-body">
+              id (PK)<br>
+              company_scraped_post_id (FK, UNIQUE)<br>
+              topics[] (JSONB)<br>
+              pain_points[] (JSONB)<br>
+              sentiment + sentiment_score<br>
+              intent_signals[] · key_quotes[]<br>
+              analysis_model · token_usage
+            </div>
+          </div>
+          <div class="flow-arrow self-center">M..1</div>
+          <div class="col">
+            <div class="col-head" style="color:#a855f7">post_insight_tags (NEW)</div>
+            <div class="col-body">
+              id (PK)<br>
+              company_scraped_post_id XOR scraped_post_id<br>
+              insight_id (FK) → pain_point_insights<br>
+              microsegment_id<br>
+              score (0..1)<br>
+              source ∈ {evidence · fuzzy · llm · manual}<br>
+              UNIQUE(post, insight)
+            </div>
+          </div>
+
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div class="col">
+            <div class="col-head">pain_point_insights</div>
+            <div class="col-body">
+              id (PK)<br>
+              microsegment_id ★<br>
+              insight_name UNIQUE(ms, name)<br>
+              pain_point_summary<br>
+              who_feels_pain · what_triggers_it<br>
+              urgency_level (high/medium/low)<br>
+              frequency_count · company_count · contact_count<br>
+              avg_sentiment_score · sentiment_distribution<br>
+              topics[] · evidence[] (JSONB)
+            </div>
+          </div>
+
+        </div>
+        <div class="text-xs text-gray-500 mt-5 mono">
+          ◆ unique-indexed for dedupe &nbsp; ★ soft FK (TEXT, not normalised) &nbsp;
+          JSONB arrays use GIN where queried (topics, evidence)
+        </div>
+      </div>
+
+      <h3 class="text-white mt-6">Why a join table for tags, not a JSONB array</h3>
+      <div class="card text-sm text-gray-300 leading-relaxed">
+        The hot query for the audience builder is
+        <em>"contacts at companies whose posts tag into insight X"</em> — that's a relational
+        predicate on a 24-row dimension (the insights menu). A B-tree index on
+        <code class="inline">insight_id</code> handles it in microseconds. GIN on a JSONB array
+        would work but adds complexity and doesn't support per-edge metadata.
+        <br><br>
+        The <code class="inline">source</code> + <code class="inline">score</code> columns are
+        what make the three tagging passes coexist: evidence-bootstrapped rows keep their
+        ground-truth 1.0 score; fuzzy rows carry their similarity score for later threshold
+        tightening; LLM rows carry the model's reported confidence. One unique index per
+        post-kind makes every pass idempotent — re-running is safe.
+      </div>
+    </section>
+
+    <!-- 4. INGEST -->
+    <section id="ingest">
+      <h2>4. Ingest layer</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        LinkedIn Sales Navigator is a paid search product. Exporting its HTML is the primary
+        data source because it bundles <em>three things at once</em> that would otherwise each
+        cost API credits: company profile data, decision-maker cards, and recent company-page posts.
+      </p>
+
+      <h3>What comes in</h3>
+      <div class="card overflow-x-auto">
+        <table class="tidy">
+          <thead>
+            <tr><th>File</th><th>What it contains</th><th>Parser fn</th><th>Goes into</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">upload_*.csv</td>
+              <td>Source seed list — company name, domain, industry, HQ per row</td>
+              <td class="text-gray-500">CSV parse</td>
+              <td>companies (seed)</td>
+            </tr>
+            <tr>
+              <td class="mono">linkedin_sales_nav_*.csv</td>
+              <td>Sales Nav export — company name, Sales Nav URL, industry phrase</td>
+              <td class="text-gray-500">CSV parse + name/industry split</td>
+              <td>companies (linkedin_company_id)</td>
+            </tr>
+            <tr>
+              <td class="mono">company_&lt;id&gt;_page.html</td>
+              <td>Sales Nav company profile page — industry, HQ, size, revenue, about, <em>and up to 20 recent company posts</em></td>
+              <td class="mono">parseCompanyPage<br>parseCompanyPagePosts</td>
+              <td>companies, scraped_company_posts</td>
+            </tr>
+            <tr>
+              <td class="mono">company_&lt;id&gt;_decision_makers.html</td>
+              <td>Sales Nav decision-makers search — person name, title, location, tenure, connection degree, bio, Sales Nav lead URL</td>
+              <td class="mono">parseDecisionMakers</td>
+              <td>contacts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout success">
+        <div class="label">Key discovery</div>
+        <div class="text-sm text-gray-300">
+          Sales Nav company pages embed up to ~20 of the company's recent LinkedIn posts inline,
+          as <code class="inline">[data-anonymize="general-blurb"]</code> elements with the full
+          post text in the <code class="inline">title</code> attribute plus a
+          <code class="inline">&lt;time datetime&gt;</code> ISO timestamp. Parsing these yields
+          <strong class="text-white">6,121 free posts</strong> for the IoT cohort — zero scrape API
+          calls, zero credits. Replaced the original plan of paying ScrapeCreators per company.
+        </div>
+      </div>
+
+      <h3>Extraction mechanics</h3>
+      <pre><code>// src/parsers/salesnav-html.ts — post extraction
+
+$("article.alert-card").each((_, el) => {
+  const alertId = el.attribs["data-alert-id"];
+  // urn:li:fs_salesEntityAlert:(urn:li:fs_salesCompany:&lt;co&gt;,&lt;postId&gt;,TYPE)
+  const [, urnCo, postId] = alertId.match(/fs_salesCompany:(\d+),(\d+),/);
+  const blurb = $(el).find('[data-anonymize="general-blurb"]').first();
+  const post_text = blurb.attr("title") ?? blurb.text();  // full text, not DOM-clamped
+  const post_date = $(el).find("time[datetime]").attr("datetime");
+  // Synthetic URL so (post_url) stays UNIQUE even before ScrapeCreators fills in.
+  const post_url = `salesnav://company/${urnCo}/alert/${postId}`;
+  …
+});</code></pre>
+
+      <h3>What the seeder does</h3>
+      <div class="card text-sm text-gray-300 space-y-2 leading-relaxed">
+        <p><code class="inline">scripts/seed-from-linkedin-salesnav.ts</code> is a single idempotent pass:</p>
+        <ol class="list-decimal list-inside ml-2 space-y-1">
+          <li>Loads the three CSVs + every HTML file into memory as maps keyed by <code class="inline">linkedin_company_id</code>.</li>
+          <li>For each id present in either Sales Nav CSV or HTML bundle, builds a merged company record (Sales Nav metadata wins over CSV; HTML details win over either).</li>
+          <li>Upserts <code class="inline">companies</code> via <code class="inline">linkedin_company_id</code> (primary key) or <code class="inline">primary_domain</code> (fallback) — never duplicates.</li>
+          <li>For each parsed decision-maker, derives <code class="inline">role_seniority</code> + <code class="inline">public_linkedin_url</code> inline and upserts <code class="inline">contacts</code>.</li>
+          <li>For each embedded post, inserts a <code class="inline">scraped_company_posts</code> row — <code class="inline">ON CONFLICT (post_url) DO NOTHING</code>.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 5. ANALYSIS -->
+    <section id="analyze">
+      <h2>5. Analysis layer</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        Each company-page post is run through Haiku 4.5 once. The model extracts a structured
+        summary; the row is persisted in <code class="inline">company_post_analysis</code>
+        with a 1:1 relationship to the source post. Idempotent (ON CONFLICT DO NOTHING).
+      </p>
+
+      <h3>Per-post extraction prompt shape</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+        <div class="card">
+          <h4>Input (per post)</h4>
+          <ul class="text-sm text-gray-300 space-y-1 ml-4 list-disc list-inside">
+            <li>post_text (clamped to 2,000 chars)</li>
+            <li>authorName — company display name</li>
+            <li>authorTitle — "Company Page"</li>
+            <li>authorCompany — company display name</li>
+            <li>postDate (ISO)</li>
+            <li>microsegmentLabel — for context</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Output (strict JSON)</h4>
+          <ul class="text-sm text-gray-300 space-y-1 ml-4 list-disc list-inside">
+            <li><code class="inline">topics[]</code> — 3–10 short strings</li>
+            <li><code class="inline">pain_points[]</code> — 0–10 short strings</li>
+            <li><code class="inline">sentiment</code> — positive / neutral / negative / mixed</li>
+            <li><code class="inline">sentiment_score</code> — -1..1 float</li>
+            <li><code class="inline">intent_signals[]</code> — e.g. <em>thought_leadership, evaluating_vendors</em></li>
+            <li><code class="inline">key_quotes[]</code> — verbatim substrings of the post</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Why Haiku, not Sonnet/Opus</h3>
+      <div class="callout warn">
+        <div class="label">Constraint</div>
+        <div class="text-sm text-gray-300">
+          The project runs on an <code class="inline">ANTHROPIC_AUTH_TOKEN</code>
+          (OAuth bearer from <code class="inline">claude setup-token</code>), which is
+          tier-gated to Haiku for programmatic use. Sonnet 4.6 and Opus 4.7 return
+          instant 429s on that auth class regardless of volume — it's a subscription gate,
+          not throughput throttling (see <a href="#decisions" class="text-blue-400 underline">§14 Key decisions</a>).
+          Haiku's per-post extraction quality is already strong on this data. When Sonnet is wanted
+          anyway, it's reached via Claude Code subagents (below).
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SYNTHESIS -->
+    <section id="synth">
+      <h2>6. Synthesis → the insight catalog</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        Per-post extractions are the raw material; they aren't yet the product. The synthesis
+        step clusters them into 10–15 named pain-point themes per microsegment, each with a
+        handful of ground-truth evidence posts. This is the catalog the ads operator actually
+        uses.
+      </p>
+
+      <h3>The Opus-via-subagent workaround</h3>
+      <div class="card text-sm text-gray-300 space-y-3 leading-relaxed">
+        <p>
+          Because the synthesis call benefits from stronger reasoning, and the OAuth token
+          can't reach Opus directly, synthesis is run through a Claude Code <em>subagent</em>
+          with <code class="inline">model: "opus"</code>. The subagent itself is a Claude
+          instance authenticated under the Claude Code session (which <em>is</em> entitled to
+          Opus), so the round-trip works:
+        </p>
+        <pre><code>// 1. Dump the ~200 most informative post extractions to disk.
+npx tsx scripts/export-synth-input.ts
+    → writes scripts/_synth-input.json  (capped ~250 KB)
+
+// 2. Spawn an Opus subagent. It reads the JSON, applies the
+//    pain_synthesis prompt, and writes 10–15 insights to disk.
+Agent({ model: "opus", prompt: "Read _synth-input.json, apply prompt,
+                                 write _synth-output.json" })
+
+// 3. Import the output — wipes the old cohort insights (cascading
+//    delete to post_insight_tags) and inserts the new ones.
+npx tsx scripts/import-synth-output.ts</code></pre>
+        <p>
+          Haiku is also a valid synthesis model (with <code class="inline">max_tokens: 16384</code>
+          and a retry loop on 429/529s) — <code class="inline">src/services/post-analysis.ts</code>
+          uses it directly when <code class="inline">analyze --stage 2</code> is invoked. The
+          Opus subagent path produces sharper, more ad-ready insight names.
+        </p>
+      </div>
+
+      <h3>Insight row shape</h3>
+      <pre><code>{
+  "insight_name":       "Reactive maintenance blind spots drive costly unplanned downtime",
+  "pain_point_summary": "Operators can't see asset degradation early enough, so small faults …",
+  "who_feels_pain":     "Plant and infrastructure operators, maintenance managers, asset managers …",
+  "what_triggers_it":   "Aging assets with intermittent or no monitoring; a failure that exposes …",
+  "urgency_level":      "high",
+  "frequency_count":    8,
+  "company_count":      8,
+  "contact_count":      8,
+  "avg_sentiment_score": 0.46,
+  "sentiment_distribution": {"negative":1,"mixed":1,"positive":6},
+  "topics":   ["predictive maintenance","condition monitoring","IoT sensors", …],
+  "evidence": [
+    { "post_url": "salesnav://company/5162895/alert/1381554964",
+      "company": "Tribosonics",
+      "quote":   "Unplanned maintenance is rarely caused by a single unknown asset…",
+      "date":    "2026-04-17" },
+    …
+  ]
+}</code></pre>
+    </section>
+
+    <!-- 7. TAGGING -->
+    <section id="tagging">
+      <h2>7. Tagging system (connects posts ↔ insights)</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        Without this layer, insights are read-only summaries. Tags are the bridge that lets
+        the audience builder ask <em>"give me contacts at companies that posted about X"</em>.
+        Three-pass build, all idempotent, all coexist in the same table via a
+        <code class="inline">source</code> column.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+
+        <div class="card">
+          <div class="flex items-center gap-2">
+            <span class="pill pill-green">pass 1</span>
+            <span class="text-xs text-gray-500 mono">bootstrap-tags-from-evidence.ts</span>
+          </div>
+          <h4 class="mt-2">Evidence bootstrap</h4>
+          <p class="text-sm text-gray-300 leading-relaxed mt-2">
+            Synthesis already hand-picked 3–8 posts per insight as evidence
+            (in <code class="inline">pain_point_insights.evidence</code>). That's ground truth —
+            mirror each <code class="inline">{post_url → insight_id}</code> edge into
+            <code class="inline">post_insight_tags</code> with
+            <code class="inline">source='evidence', score=1.0</code>.
+            Cost: zero. Typical yield: ~80 rows.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="flex items-center gap-2">
+            <span class="pill pill-blue">pass 2</span>
+            <span class="text-xs text-gray-500 mono">run-fuzzy-tagging.ts</span>
+          </div>
+          <h4 class="mt-2">Fuzzy (pg_trgm)</h4>
+          <p class="text-sm text-gray-300 leading-relaxed mt-2">
+            Explode each post's <code class="inline">pain_points[]</code> +
+            <code class="inline">topics[]</code> and each insight's
+            <code class="inline">insight_name</code> + <code class="inline">topics[]</code>
+            into tokens, compute pairwise <code class="inline">similarity()</code>, take the
+            max per (post, insight), insert where ≥ 0.55. Pure SQL; no API cost.
+            Yield: ~1,400 rows.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="flex items-center gap-2">
+            <span class="pill pill-purple">pass 3</span>
+            <span class="text-xs text-gray-500 mono">run-llm-tagging.ts</span>
+          </div>
+          <h4 class="mt-2">LLM residual</h4>
+          <p class="text-sm text-gray-300 leading-relaxed mt-2">
+            For posts still untagged after passes 1 + 2, send a menu-classification
+            prompt to Haiku: "Given this post and these 15 insight options, which apply?"
+            Returns <code class="inline">{matches:[{insight_id, confidence}]}</code>. Filter
+            confidence ≥ 0.4. Yield on IoT: ~3,060 rows.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="callout">
+        <div class="label">Why not just LLM everything</div>
+        <div class="text-sm text-gray-300">
+          At ~$0.80/MTok (Haiku 4.5), LLM-tagging 5,725 posts costs ~$2 per run. Fuzzy is free
+          and catches the lexically-obvious matches (the majority). Running fuzzy first cuts
+          LLM volume by ~40%, tightening the budget and cutting tagging time ~60%. The three
+          sources cohabit the table, so future iterations can re-weight (e.g. "only evidence
+          tags for conservative audiences").
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. URL RESOLUTION -->
+    <section id="urls">
+      <h2>8. Public URL resolution</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        LinkedIn Matched Audiences canonicalizes by <em>member URN</em>, not vanity slug.
+        Sales Nav URLs embed the URN in the first comma-separated segment; you can rebuild
+        a LinkedIn-accepted URL entirely client-side, no API calls needed.
+      </p>
+
+      <div class="card">
+        <h4>The trick</h4>
+        <pre class="mt-2"><code>// Sales Nav URL (what we scraped):
+//   https://www.linkedin.com/sales/lead/ACwAAARld…_RM,NAME_SEARCH,kF-Q
+//                                         └── LinkedIn member URN ──┘
+//
+// Rebuilt URL (what LinkedIn accepts):
+//   https://www.linkedin.com/in/ACwAAARld…_RM
+//
+// LinkedIn 301-redirects /in/&lt;URN&gt; → /in/&lt;vanity&gt;.
+// Matched Audiences hashes the URN directly — so URN-form URLs match
+// the member graph the same as vanity URLs.
+
+const m = salesnavUrl.match(/\/sales\/lead\/([^,?\s/#]+)/);
+const publicUrl = m ? `https://www.linkedin.com/in/${m[1]}` : null;</code></pre>
+        <p class="text-sm text-gray-300 leading-relaxed mt-3">
+          <code class="inline">scripts/rebuild-public-urls.ts</code> runs this regex across all
+          contacts and writes <code class="inline">contacts.public_linkedin_url</code>.
+          The seeder calls it inline on every insert. Audience exports prefer this column
+          over <code class="inline">salesnav_lead_url</code>, so the CSV's
+          <code class="inline">linkedin_url</code> cells are LinkedIn-matchable out of the box.
+        </p>
+      </div>
+
+      <div class="callout success">
+        <div class="label">Why this matters</div>
+        <div class="text-sm text-gray-300">
+          Alternatives cost money (Proxycurl — ~$0.05/lookup × 1,151 = $60), require new
+          vendor accounts, and add PII handling. This regex replaced the entire vendor-swap
+          migration plan.
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. API SURFACE -->
+    <section id="api">
+      <h2>9. API surface (Express, <code class="inline">src/api/routes.ts</code>)</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        12 endpoints, all stateless, all JSON except CSV exports. CORS-enabled.
+        The audience-builder endpoints share one filter parser, so the UI can pass the same
+        URL to preview and export.
+      </p>
+
+      <div class="card overflow-x-auto mt-3">
+        <table class="tidy">
+          <thead>
+            <tr><th>Method</th><th>Path</th><th>Returns</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/</td><td>health ping</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/overview</td><td>microsegment list + global totals</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/insights/:ms</td><td>insight rows + per-segment stats</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/insights/:ms/posts</td><td>paged posts for a segment</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/insights/:ms/topics</td><td>top extracted topics</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/insights/:ms/evidence/:insightId</td><td>evidence posts for one insight</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/insights/:ms/company-breakdown</td><td>industry / revenue / HQ / size histograms</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/insights/:ms/contact-stats</td><td>role / degree / location / bio coverage</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/contacts</td><td>paged contacts, full filter set</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/audiences/preview</td><td>live count + by-role + by-industry</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/audiences/export</td><td>LinkedIn Matched Audiences CSV download</td></tr>
+            <tr><td><span class="pill pill-blue">GET</span></td><td class="mono">/api/export/csv/:ms</td><td>insight catalog CSV (not contacts)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Filter semantics (shared across /contacts, /audiences/preview, /audiences/export)</h3>
+      <div class="card overflow-x-auto">
+        <table class="tidy">
+          <thead>
+            <tr><th>Query param</th><th>Accepts</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">microsegment</td><td>string</td><td>Required. Scopes to one cohort.</td></tr>
+            <tr><td class="mono">insight_id</td><td>CSV of ints</td><td>Any-of match via <code class="inline">post_insight_tags</code>.</td></tr>
+            <tr><td class="mono">industry</td><td>CSV of strings</td><td>Company-level <code class="inline">normalized_industry</code>.</td></tr>
+            <tr><td class="mono">seniority</td><td>CSV of strings</td><td>One of CEO/Founder/MD · C-Suite · VP · Director/Head · Senior IC · Manager · Other.</td></tr>
+            <tr><td class="mono">degree</td><td>CSV of strings</td><td>LinkedIn connection degree: <code class="inline">1st</code>, <code class="inline">2nd</code>, <code class="inline">3rd</code>, <code class="inline">3rd+</code>.</td></tr>
+            <tr><td class="mono">has_bio</td><td>bool</td><td>Only contacts with parsed biographies.</td></tr>
+            <tr><td class="mono">since</td><td><code class="inline">30d</code>, <code class="inline">90d</code>, <code class="inline">365d</code>, <code class="inline">12m</code></td><td>Recency on the matched post's <code class="inline">post_date</code>. Fresher signal → warmer ad lead.</td></tr>
+            <tr><td class="mono">page, limit</td><td>ints</td><td>Pagination on <code class="inline">/contacts</code>. Default page=1, limit=50, max 100.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>CSV export format (LinkedIn Matched Audiences compatible)</h3>
+      <pre><code>first_name,last_name,email,company,job_title,country,linkedin_url
+John,Drummond,,Applied Weighing International Ltd,Chief Financial Officer,United Kingdom,https://www.linkedin.com/in/ACwAAAAtb0g…
+Keshava,Boraiah,,Aracion Technology Ltd,Chief Technology Officer,India,https://www.linkedin.com/in/ACwAAABjAoc…
+…</code></pre>
+      <p class="text-sm text-gray-400 mt-2">
+        Column order matches LinkedIn Campaign Manager's template exactly. Response includes
+        <code class="inline">X-Audience-Size</code> header so the UI can show "Exporting N
+        contacts" before the download starts.
+      </p>
+    </section>
+
+    <!-- 10. DASHBOARD -->
+    <section id="dashboard">
+      <h2>10. Dashboard (React + Vite)</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        Two pages: a global Overview and a per-segment Detail. All data flows through
+        <code class="inline">@tanstack/react-query</code> for caching + background refetch.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div class="card">
+          <h4>Overview · <code class="inline">/</code></h4>
+          <ul class="text-sm text-gray-300 space-y-1 ml-4 list-disc list-inside">
+            <li>Global totals (contacts, companies, posts, analyzed, insights)</li>
+            <li>Microsegment cards — contact count + insight count per cohort</li>
+            <li>Click-through to each cohort's detail page</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Segment Detail · <code class="inline">/segments/:msId</code></h4>
+          <ul class="text-sm text-gray-300 space-y-1 ml-4 list-disc list-inside">
+            <li>Stats row — posts / analyzed / contacts / companies / avg sentiment</li>
+            <li>Cohort breakdown panel — industry / revenue / employee band / HQ</li>
+            <li>Decision-maker panel — role seniority / connection degree / top locations / bio coverage</li>
+            <li>Topic bar chart + sentiment pie</li>
+            <li><strong class="text-white">Tabs:</strong> Insights · Posts · <span class="text-blue-300">Contacts</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Audience Builder (Contacts tab)</h3>
+      <div class="card text-sm text-gray-300 leading-relaxed space-y-2">
+        <p>The operator's primary surface. Works like a funnel:</p>
+        <ol class="list-decimal list-inside ml-2 space-y-1">
+          <li>Jump in via "Build audience →" on any insight card (preselects that insight).</li>
+          <li>Multi-select chips: pain-points, industries, seniority, connection-degree.</li>
+          <li>Single-select chips: recency window (30d / 90d / 365d / all-time).</li>
+          <li>Live counter updates on every click (<code class="inline">/audiences/preview</code>).</li>
+          <li>"Export CSV →" streams the full list to disk, ready for LinkedIn upload.</li>
+        </ol>
+        <p>
+          Each contact row shows name, title, company, location, connection-degree,
+          role-seniority pill, expandable bio, and a <strong class="text-blue-300">LinkedIn ↗</strong>
+          link that opens the URN-form public URL.
+        </p>
+      </div>
+    </section>
+
+    <!-- 11. ADS WORKFLOW -->
+    <section id="ads">
+      <h2>11. End-to-end LinkedIn Ads workflow</h2>
+      <div class="card text-sm text-gray-300 leading-relaxed">
+        <ol class="list-decimal list-inside ml-2 space-y-3">
+          <li>
+            <strong class="text-white">Scout.</strong> Browse insights for the cohort, read
+            evidence posts, pick the pain-point that matches your pitch (e.g. <em>Reactive
+            maintenance blind spots</em>).
+          </li>
+          <li>
+            <strong class="text-white">Narrow.</strong> Click "Build audience", layer on
+            seniority (usually CEO/Founder/MD + C-Suite for decision-maker campaigns),
+            industry focus, and recency (last 90 days if you want fresh signal).
+          </li>
+          <li>
+            <strong class="text-white">Size.</strong> Watch the live counter. LinkedIn's
+            minimum audience is ~300; practical campaign targets are 500–5,000. Loosen or
+            tighten filters until you're in range.
+          </li>
+          <li>
+            <strong class="text-white">Export.</strong> Click "Export CSV →", verify the row
+            count matches the counter, open the file, confirm
+            <code class="inline">linkedin_url</code> cells all look like
+            <code class="inline">linkedin.com/in/&lt;URN&gt;</code>.
+          </li>
+          <li>
+            <strong class="text-white">Upload.</strong> LinkedIn Campaign Manager → Audiences
+            → Create → List upload → Contact list → paste the CSV. Expect 60–90% match rate
+            (LinkedIn canonicalizes URNs to members).
+          </li>
+          <li>
+            <strong class="text-white">Copy.</strong> Pull ad hooks from the insight's
+            <code class="inline">key_quotes</code> array and <code class="inline">pain_point_summary</code>
+            — those are verbatim words from the target audience, which is
+            copy gold.
+          </li>
+        </ol>
+      </div>
+
+      <div class="callout">
+        <div class="label">Why this beats standard LinkedIn targeting</div>
+        <div class="text-sm text-gray-300">
+          Standard LinkedIn Ads lets you target by job title + industry + company size. This
+          tool adds a layer Campaign Manager can't: <em>"has personally been exposed to pain-point X
+          recently"</em> — inferred from their company's own LinkedIn posts. A CFO at a company
+          whose last three posts complained about unplanned downtime is a warmer lead than
+          a random CFO at an industrial manufacturer, even if both look identical on LinkedIn's
+          own filters.
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. DEPLOYMENT -->
+    <section id="deploy">
+      <h2>12. Deployment</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        Single GitHub repo, two hosting platforms, one database.
+      </p>
+
+      <div class="card">
+        <pre class="mt-0"><code>┌─────────────────────────────┐        ┌─────────────────────────────┐
+│  Vercel — Frontend          │        │  Railway — Backend          │
+│  github.com/mxdgroup/       │───────▶│  github.com/mxdgroup/       │
+│    linkedin_gtm_data/       │  same  │    linkedin_gtm_data/       │
+│    (root = dashboard/)      │  repo  │    (root = repo root)       │
+│                             │        │                             │
+│  npm run build              │        │  npm start                  │
+│  → vite build → dist/       │        │  → tsx src/api/server.ts    │
+│                             │        │    listens on 0.0.0.0:$PORT │
+│  env: VITE_API_URL ──────────────────▶ env: DATABASE_URL, CORS_ORIGIN,
+│                             │        │      SCRAPECREATORS_API_KEY,
+└─────────────────────────────┘        │      ANTHROPIC_AUTH_TOKEN    │
+           │                           └─────────────────────────────┘
+           │                                        │
+           │  fetch('/api/…') with VITE_API_URL     │
+           └────────────────────────────────────────┤
+                                                    │
+                                                    ▼
+                                ┌─────────────────────────────┐
+                                │  Railway — Postgres          │
+                                │  (same project, shared       │
+                                │  DATABASE_URL)               │
+                                └─────────────────────────────┘</code></pre>
+      </div>
+
+      <h3>Environment variables</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card">
+          <h4>Railway (backend)</h4>
+          <ul class="text-sm text-gray-300 space-y-1 ml-4 list-disc list-inside">
+            <li><code class="inline">DATABASE_URL</code> — from the Postgres service</li>
+            <li><code class="inline">SCRAPECREATORS_API_KEY</code> — for optional post scraping</li>
+            <li><code class="inline">ANTHROPIC_AUTH_TOKEN</code> — if analysis runs in prod</li>
+            <li><code class="inline">CORS_ORIGIN</code> — Vercel URL, e.g. <code class="inline">https://linkedin-gtm-data.vercel.app</code></li>
+            <li><code class="inline">NODE_ENV=production</code></li>
+            <li class="text-gray-500"><code class="inline">PORT</code> — do NOT set; Railway injects it</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Vercel (frontend)</h4>
+          <ul class="text-sm text-gray-300 space-y-1 ml-4 list-disc list-inside">
+            <li><code class="inline">VITE_API_URL</code> — Railway URL, e.g. <code class="inline">https://linkedingtmdata-production.up.railway.app</code></li>
+          </ul>
+          <p class="text-xs text-gray-500 mt-3">
+            Build settings: Root Directory <code class="inline">dashboard</code>, Framework preset <code class="inline">Vite</code>,
+            Install Command <code class="inline">npm install --include=dev</code> (already in <code class="inline">vercel.json</code>).
+          </p>
+        </div>
+      </div>
+
+      <h3>Two Railway-specific fixes worth noting</h3>
+      <div class="card text-sm text-gray-300 leading-relaxed space-y-2">
+        <p>
+          <strong class="text-white">1. Bind 0.0.0.0.</strong> Default Node/Express binds can
+          resolve to <code class="inline">::1</code> (localhost-only); Railway's proxy then
+          gets no response. <code class="inline">app.listen(PORT, "0.0.0.0", …)</code> is
+          explicit and portable.
+        </p>
+        <p>
+          <strong class="text-white">2. Target Port.</strong> Service → Settings → Networking
+          → Target Port: set to <code class="inline">8080</code> (or whatever
+          <code class="inline">$PORT</code> resolves to on first boot). Without this, Railway's
+          health-check may hit the wrong port.
+        </p>
+      </div>
+    </section>
+
+    <!-- 13. OPERATIONS -->
+    <section id="ops">
+      <h2>13. Running pipelines</h2>
+      <p class="text-sm text-gray-400 mt-2">
+        Long-running pipelines stay on the developer's laptop (not Railway). They hit the
+        prod DB directly via <code class="inline">DATABASE_URL</code> in local
+        <code class="inline">.env</code>.
+      </p>
+
+      <div class="card overflow-x-auto">
+        <table class="tidy">
+          <thead>
+            <tr><th>Step</th><th>Command</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td class="mono">npm run migrate</td><td>Apply additive schema changes</td></tr>
+            <tr><td>1</td><td class="mono">npm run seed:salesnav [-- --data-dir …]</td><td>Parse an HTML bundle + upsert rows</td></tr>
+            <tr><td>2a</td><td class="mono">npm run scrape:companies -- --microsegment &lt;id&gt;</td><td>Optional — pull fresh posts via ScrapeCreators</td></tr>
+            <tr><td>2b</td><td class="mono">tsx scripts/rebuild-public-urls.ts</td><td>Regenerate <code class="inline">public_linkedin_url</code> (idempotent)</td></tr>
+            <tr><td>3</td><td class="mono">npm run analyze:companies -- --microsegment &lt;id&gt;</td><td>Per-post Haiku extraction (skips already-analyzed)</td></tr>
+            <tr><td>4a</td><td class="mono">tsx scripts/export-synth-input.ts &lt;ms&gt;</td><td>Dump posts for subagent synthesis</td></tr>
+            <tr><td>4b</td><td class="text-gray-500">(Claude Code subagent, model=opus)</td><td>Produce <code class="inline">_synth-output.json</code></td></tr>
+            <tr><td>4c</td><td class="mono">tsx scripts/import-synth-output.ts</td><td>Replace cohort insights</td></tr>
+            <tr><td>5a</td><td class="mono">tsx scripts/bootstrap-tags-from-evidence.ts --microsegment &lt;id&gt;</td><td>Tag pass 1 — evidence</td></tr>
+            <tr><td>5b</td><td class="mono">tsx scripts/run-fuzzy-tagging.ts --microsegment &lt;id&gt; --threshold 0.55</td><td>Tag pass 2 — fuzzy</td></tr>
+            <tr><td>5c</td><td class="mono">tsx scripts/run-llm-tagging.ts --microsegment &lt;id&gt;</td><td>Tag pass 3 — Haiku residual</td></tr>
+            <tr><td>6</td><td class="mono">tsx scripts/backfill-role-seniority.ts</td><td>Compute role buckets (idempotent, one-off after role-bucket logic changes)</td></tr>
+            <tr><td>7</td><td class="mono">tsx scripts/build-data-model-html.ts</td><td>Regenerate <code class="inline">docs/data-model.html</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 14. DECISIONS -->
+    <section id="decisions">
+      <h2>14. Key design decisions</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div class="card">
+          <h4>Primary data source: Sales Nav HTML, not scraping APIs</h4>
+          <p class="text-sm text-gray-300 mt-2 leading-relaxed">
+            Sales Nav bundles include company profile + decision-makers + recent company posts
+            in one scrape. Parsing them yielded 6,121 free posts and 1,151 enriched contacts
+            for the IoT cohort — an entire analysis cohort sourced for zero API credits. We
+            still wire ScrapeCreators for the case where no HTML bundle exists, but it's
+            now a fallback, not the main path.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Public URL resolution: regex, not vendor</h4>
+          <p class="text-sm text-gray-300 mt-2 leading-relaxed">
+            LinkedIn Matched Audiences accepts <code class="inline">/in/&lt;URN&gt;</code> URLs;
+            LinkedIn itself 301s them to the vanity. The URN is embedded in every Sales Nav
+            lead URL. One regex extracts it. We avoided Proxycurl ($60) and Apollo (PII
+            handling) entirely.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Tagging: join table + fuzzy + LLM hybrid</h4>
+          <p class="text-sm text-gray-300 mt-2 leading-relaxed">
+            Join table over JSONB array because the hot query is a relational predicate on
+            a 24-row dimension. Fuzzy first because most matches are lexically obvious and
+            SQL is free. LLM residual only because the marginal 30% of posts need semantic
+            matching. All three sources live in the same table, scored + annotated.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>OAuth token tier-gate — Opus via subagent</h4>
+          <p class="text-sm text-gray-300 mt-2 leading-relaxed">
+            <code class="inline">sk-ant-oat01-…</code> tokens from <code class="inline">claude setup-token</code>
+            are Haiku-only for programmatic use. A developer key (<code class="inline">sk-ant-api03-…</code>)
+            would unlock Sonnet/Opus but requires separate billing. Workaround: use Claude Code
+            subagents with <code class="inline">model: "opus"</code>. They run under the Claude
+            Code session's entitlement, so synthesis-via-Opus is free under the existing subscription.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Role bucketing: shared TS, not SQL CASE</h4>
+          <p class="text-sm text-gray-300 mt-2 leading-relaxed">
+            Role-seniority used to live as a SQL CASE in <code class="inline">/contact-stats</code>
+            AND as a JS function on the client. Extracted to
+            <code class="inline">src/lib/role-bucket.ts</code> — canonical, called from the
+            backfill script, seeder, and dashboard. Column is materialised so filters use an
+            index, not a per-row LIKE.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Synthetic post URLs for HTML-derived posts</h4>
+          <p class="text-sm text-gray-300 mt-2 leading-relaxed">
+            <code class="inline">scraped_company_posts.post_url</code> is <code class="inline">UNIQUE</code>,
+            but Sales Nav HTML doesn't expose the public LinkedIn post URL. Fabricated a stable
+            <code class="inline">salesnav://company/&lt;co&gt;/alert/&lt;id&gt;</code> scheme so
+            re-seeds are idempotent without collision risk, and real HTTPS URLs coexist when
+            ScrapeCreators later fills them in.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 15. LIMITS -->
+    <section id="limits">
+      <h2>15. Known limits + roadmap</h2>
+
+      <h3>Limits right now</h3>
+      <div class="card">
+        <ul class="text-sm text-gray-300 space-y-2 ml-2 list-disc list-inside">
+          <li>
+            <strong class="text-white">One cohort is analyzed.</strong> The IoT microsegment is fully processed.
+            The other 39 microsegments have contacts but no posts / insights / tags — they need HTML bundles.
+          </li>
+          <li>
+            <strong class="text-white">No emails.</strong> LinkedIn Matched Audiences accepts the URN-URL form we generate,
+            but email enrichment (via Apollo or similar) typically improves match rate further.
+            Optional future step.
+          </li>
+          <li>
+            <strong class="text-white">No ad-copy generator.</strong> The insights contain the raw material
+            (<code class="inline">key_quotes</code>, <code class="inline">who_feels_pain</code>,
+            <code class="inline">what_triggers_it</code>) but nothing automatically produces headline/body
+            variants. Manual copy lift for now.
+          </li>
+          <li>
+            <strong class="text-white">No temporal trend per insight.</strong> We have
+            <code class="inline">post_date</code> on every tag, but nothing visualises whether
+            pain-point X is gaining or fading over time. Would help budget allocation.
+          </li>
+          <li>
+            <strong class="text-white">Single-user auth model.</strong> No login screen; whoever
+            has the Vercel URL can see everything. Fine for a single team; add OAuth before
+            customer-facing exposure.
+          </li>
+          <li>
+            <strong class="text-white">No saved audiences.</strong> Every export is generated
+            on the fly. To rebuild the same audience after new data arrives, re-enter the
+            filter state — there's no named-audience store.
+          </li>
+        </ul>
+      </div>
+
+      <h3>Natural next additions</h3>
+      <div class="card">
+        <ul class="text-sm text-gray-300 space-y-1 ml-2 list-disc list-inside">
+          <li>
+            <strong>Saved audiences</strong> — <code class="inline">audiences</code> table keyed
+            on filter state; one button to rebuild and re-export.
+          </li>
+          <li>
+            <strong>Ad-copy generator</strong> — Opus subagent takes insight + top 6 quotes + seniority
+            mix → 3 headlines (≤70 chars), 3 body variants (≤150), 1 CTA, angle classification.
+          </li>
+          <li>
+            <strong>Account rollup</strong> — companies with ≥N tagged posts become a Matched
+            Company Audience seed (different CSV shape).
+          </li>
+          <li>
+            <strong>Temporal trend</strong> — sparkline per insight card showing 30/90/365-day
+            tag counts. Falling pains burn ad budget; rising pains deserve it.
+          </li>
+          <li>
+            <strong>Lookalike expansion</strong> — from a small audience, find untagged contacts
+            whose (industry, seniority, location, size) vector matches. Purely SQL k-NN.
+          </li>
+          <li>
+            <strong>Email enrichment</strong> — backfill <code class="inline">contacts.email</code>
+            via Apollo/Clearbit; raises LinkedIn match rate.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="text-xs text-gray-600 mt-10 border-t border-gray-800 pt-4">
+      Generated handbook. For live DB snapshots regenerate <code class="inline">docs/data-model.html</code>
+      via <code class="inline">npx tsx scripts/build-data-model-html.ts</code>.
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Scroll-spy for the sidebar — highlights the section currently on-screen.
+  const sections = [...document.querySelectorAll("main > section[id]")];
+  const links = [...document.querySelectorAll("a.nav")];
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      links.forEach((l) => l.classList.toggle("active", l.getAttribute("href") === `#${e.target.id}`));
+    }
+  }, { rootMargin: "-40% 0px -55% 0px" });
+  sections.forEach((s) => io.observe(s));
+</script>
+</body>
+</html>

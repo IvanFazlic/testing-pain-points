@@ -141,3 +141,49 @@ CREATE TABLE IF NOT EXISTS pain_point_insights (
   UNIQUE(microsegment_id, insight_name)
 );
 CREATE INDEX IF NOT EXISTS idx_insights_microsegment ON pain_point_insights(microsegment_id);
+
+-- Sales Navigator enrichment (added for UK industrial-IoT cohort ingestion)
+ALTER TABLE companies
+  ADD COLUMN IF NOT EXISTS company_linkedin_url TEXT,
+  ADD COLUMN IF NOT EXISTS revenue_band TEXT,
+  ADD COLUMN IF NOT EXISTS headquarters TEXT,
+  ADD COLUMN IF NOT EXISTS about_text TEXT,
+  ADD COLUMN IF NOT EXISTS raw_employee_count TEXT;
+
+ALTER TABLE contacts
+  ADD COLUMN IF NOT EXISTS salesnav_lead_url TEXT,
+  ADD COLUMN IF NOT EXISTS tenure_in_role TEXT,
+  ADD COLUMN IF NOT EXISTS connection_degree TEXT,
+  ADD COLUMN IF NOT EXISTS location TEXT,
+  ADD COLUMN IF NOT EXISTS bio TEXT,
+  -- Resolved via ScrapeCreators /v1/linkedin/profile?url=<salesnav_lead_url>.
+  -- Public /in/<vanity> form needed for LinkedIn Matched Audiences URL match.
+  ADD COLUMN IF NOT EXISTS public_linkedin_url TEXT,
+  ADD COLUMN IF NOT EXISTS public_url_resolved_at TIMESTAMPTZ;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_companies_linkedin_id
+  ON companies(linkedin_company_id) WHERE linkedin_company_id IS NOT NULL;
+
+-- Post → pain-point-insight tagging (for LinkedIn Ads audience building).
+-- One row per (post, insight) edge; source lets fuzzy / llm / evidence / manual coexist.
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE TABLE IF NOT EXISTS post_insight_tags (
+  id                      SERIAL PRIMARY KEY,
+  company_scraped_post_id INTEGER REFERENCES scraped_company_posts(id) ON DELETE CASCADE,
+  scraped_post_id         INTEGER REFERENCES scraped_posts(id) ON DELETE CASCADE,
+  insight_id              INTEGER NOT NULL REFERENCES pain_point_insights(id) ON DELETE CASCADE,
+  microsegment_id         TEXT NOT NULL,
+  score                   REAL NOT NULL,
+  source                  TEXT NOT NULL CHECK (source IN ('evidence','fuzzy','llm','manual')),
+  created_at              TIMESTAMPTZ DEFAULT NOW(),
+  CHECK ((company_scraped_post_id IS NOT NULL) <> (scraped_post_id IS NOT NULL))
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_pit_company
+  ON post_insight_tags(company_scraped_post_id, insight_id)
+  WHERE company_scraped_post_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_pit_indiv
+  ON post_insight_tags(scraped_post_id, insight_id)
+  WHERE scraped_post_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS ix_pit_insight ON post_insight_tags(insight_id);
+CREATE INDEX IF NOT EXISTS ix_pit_microseg ON post_insight_tags(microsegment_id);

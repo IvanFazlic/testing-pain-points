@@ -18,6 +18,8 @@ const anthropic = new Anthropic({
 });
 
 const EXTRACTION_MODEL = "claude-haiku-4-5-20251001";
+// Sonnet 4.6 hit hard 429s on the OAuth bearer (bucket-exhaustion, not transient).
+// Haiku 4.5 cleared 5,700 posts at concurrency 10 without rate-limit issues.
 const SYNTHESIS_MODEL = "claude-haiku-4-5-20251001";
 const EXTRACTION_PROMPT_VERSION = "v1";
 const SYNTHESIS_PROMPT_VERSION = "v1";
@@ -121,20 +123,36 @@ export async function synthesizePainPoints(context: {
     );
   }
 
-  const response = await anthropic.messages.create({
-    model: SYNTHESIS_MODEL,
-    max_tokens: 8192,
-    system: PAIN_SYNTHESIS_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: PAIN_SYNTHESIS_USER({
-          ...context,
-          posts: postsForPrompt,
-        }),
-      },
-    ],
-  });
+  // Retry on 429s — OAuth-token rate limits are tight and the Anthropic SDK doesn't auto-retry.
+  let response: Awaited<ReturnType<typeof anthropic.messages.create>> | null = null;
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      response = await anthropic.messages.create({
+        model: SYNTHESIS_MODEL,
+        max_tokens: 16384,
+        system: PAIN_SYNTHESIS_SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content: PAIN_SYNTHESIS_USER({
+              ...context,
+              posts: postsForPrompt,
+            }),
+          },
+        ],
+      });
+      break;
+    } catch (err: any) {
+      lastErr = err;
+      const status = err?.status ?? err?.response?.status;
+      if (status !== 429 && status !== 529) throw err;
+      const wait = Math.min(60_000, 5_000 * 2 ** (attempt - 1));
+      console.warn(`  Rate-limited (${status}), retry ${attempt}/5 after ${wait}ms`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  if (!response) throw lastErr ?? new Error("Synthesis failed after retries");
 
   const text =
     response.content[0].type === "text" ? response.content[0].text : "";
